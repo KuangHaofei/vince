@@ -15,7 +15,7 @@ python solver_runner.py \
   --lr-step-schedule 10 20 30 \
   --epochs 40 \
   --dataset Kinetics400Dataset \
-  --data-path /home/xkcd/datasets/kinetics400/ \
+  --data-path /home/ubuntu/drive2/kinetics400 \
   --pytorch-gpu-ids 0 \
   --feature-extractor-gpu-ids 0 \
   --base-logdir ${BASE_LOG_LOCATION} \

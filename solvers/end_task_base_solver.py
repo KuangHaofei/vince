@@ -112,7 +112,8 @@ class EndTaskBaseSolver(BaseSolver, abc.ABC):
     def setup_feature_extractor(self):
         args = copy.deepcopy(self.args)
         args.title = os.path.join(args.title, "VinceModel")
-        args.checkpoint_dir = os.path.join(args.base_logdir, args.title, *(args.checkpoint_dir.split(os.sep)[2:]))
+        # args.checkpoint_dir = os.path.join(args.base_logdir, args.title, *(args.checkpoint_dir.split(os.sep)[2:]))
+        args.checkpoint_dir = os.path.join(args.base_logdir, args.title)
         args.long_save_checkpoint_dir = os.path.join(
             args.base_logdir, args.title, *(args.long_save_checkpoint_dir.split(os.sep)[2:-1]), constants.TIME_STR
         )

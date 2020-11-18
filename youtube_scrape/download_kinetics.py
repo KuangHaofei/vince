@@ -18,7 +18,7 @@ from dg_util.python_utils import youtube_utils
 NUM_THREADS = 50
 FPS = 10
 MAX_SIDE_SIZE = 320
-dataset_folder = "/home/xkcd/datasets/kinetics400_data/"
+dataset_folder = "/home/ubuntu/workspace/dataset/kinetics400_data/"
 
 annotation_folder = os.path.join(dataset_folder, "annotations")
 image_folder = os.path.join(dataset_folder, "images", "%dfps" % FPS)
