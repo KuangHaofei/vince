@@ -6,6 +6,7 @@ import random
 from typing import Dict, Optional
 
 import numpy as np
+import math
 import torch
 import tqdm
 
@@ -29,7 +30,7 @@ class Kinetics400Dataset(VideoDataset, BatchConcatDataset):
     @staticmethod
     def get_frame_id(name):
         img_name, _ = os.path.splitext(name.split('/')[-1])
-        return int(img_name[4:])
+        return int(img_name[6:])
 
     def get_image_paths(self):
         image_paths = []
@@ -39,13 +40,15 @@ class Kinetics400Dataset(VideoDataset, BatchConcatDataset):
             for filename in tbar:
                 video_name, _, label = filename.split()
                 video_name, _ = os.path.splitext(video_name)
-                image_paths += list(glob.iglob(os.path.join(self.data_split_path, video_name, "*.jpg")))
+                # use splitetxt twice because there are some video name like: abseiling/9EnSwbXxu5g.mp4.webm
+                video_name, _ = os.path.splitext(video_name)
+                image_paths += sorted(glob.glob(os.path.join(self.data_split_path, video_name, "*.jpg")))
                 tbar.set_description("Loading Videos")
 
         return image_paths
 
     def get_image_name(self, key: str, ind: int):
-        return os.path.join(self.data_split_path, key, "img_%05d.jpg" % ind)
+        return os.path.join(self.data_split_path, key, "frame_%05d.jpg" % ind)
 
     @staticmethod
     def standard_transform(size, data_subset):
@@ -77,6 +80,8 @@ class Kinetics400Dataset(VideoDataset, BatchConcatDataset):
                 for filename in txt:
                     video_name, _, label = filename.split()
                     video_name, _ = os.path.splitext(video_name)
+                    # use splitetxt twice because there are some video name like: abseiling/9EnSwbXxu5g.mp4.webm
+                    video_name, _ = os.path.splitext(video_name)
                     annotations[video_name] = int(label)
             pickle.dump(annotations, open(pickle_path, "wb"))
 
@@ -89,10 +94,11 @@ class Kinetics400Dataset(VideoDataset, BatchConcatDataset):
         initial_seed = random.randint(0, 2 ** 31)
 
         path_key, frame_ids = self.path_info[idx]
-        start_ind = np.random.randint(1, len(frame_ids) - self.num_images_to_return + 1)
+
+        frame_idx = [i for i in range(1, len(frame_ids) + 1, math.ceil(len(frame_ids) / self.num_images_to_return))]
 
         images = []
-        for img_ind in range(start_ind, start_ind + self.num_images_to_return):
+        for img_ind in frame_idx:
             path = self.get_image_name(path_key, img_ind)
             image = self.read_image(path)
             if image is None:
@@ -105,3 +111,24 @@ class Kinetics400Dataset(VideoDataset, BatchConcatDataset):
         label = self.annotations[path_key]
 
         return {"data": images, "labels": label, "id": self.path_info[idx], "keys_to_concat": ["data"]}
+
+    # def __getitem__(self, idx) -> Optional[Dict[str, torch.Tensor]]:
+    #     initial_seed = random.randint(0, 2 ** 31)
+    #
+    #     path_key, frame_ids = self.path_info[idx]
+    #     start_ind = np.random.randint(1, len(frame_ids) - self.num_images_to_return + 1)
+    #
+    #     images = []
+    #     for img_ind in range(start_ind, start_ind + self.num_images_to_return):
+    #         path = self.get_image_name(path_key, img_ind)
+    #         image = self.read_image(path)
+    #         if image is None:
+    #             print("Skipping", path, "missing file")
+    #             return None
+    #         if self.shared_transform:
+    #             self.set_rng(initial_seed)
+    #         image = self.transform(image)
+    #         images.append(image)
+    #     label = self.annotations[path_key]
+    #
+    #     return {"data": images, "labels": label, "id": self.path_info[idx], "keys_to_concat": ["data"]}

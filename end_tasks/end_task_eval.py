@@ -1,11 +1,13 @@
 import torch.multiprocessing as multiprocessing
-
+from dg_util.python_utils import tensorboard_logger
 import arg_parser
+import os
 
 
 def main():
     args = arg_parser.parse_args()
-    solver = args.solver(args, None, None)
+    val_logger = tensorboard_logger.Logger(os.path.join(args.tensorboard_dir))
+    solver = args.solver(args, None, val_logger)
     solver.run_eval()
 
 
